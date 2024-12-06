@@ -29,7 +29,7 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="http/http.pas"/>
+        <Filename Value="http/utils.http.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>

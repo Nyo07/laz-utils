@@ -1,6 +1,6 @@
 program utils;
 
-uses http;
+uses utils.http;
 
 begin
 end.

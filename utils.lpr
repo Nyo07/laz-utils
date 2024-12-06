@@ -1,6 +1,6 @@
 program utils;
 
-uses utils.http;
+uses utils.http, utils.crypt;
 
 begin
 end.
