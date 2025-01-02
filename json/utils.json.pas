@@ -1,0 +1,108 @@
+unit utils.json;
+
+{$mode ObjFPC}{$H+}
+
+interface
+
+uses
+  Classes, SysUtils, fpjson, jsonparser;
+
+function GetJSONInteger(JsonObj: TJSONObject; const FieldName: String; const Default: Integer = -1; UseDefault: Boolean = False): Integer;
+function GetJSONNumber(JsonObj: TJSONObject; const FieldName: String; UseDefault: Boolean = False; const Default: Double = 0.0): Double;
+function GetJSONString(JsonObj: TJSONObject; const FieldName: String; UseDefault: Boolean = False; const Default: String = ''): String;
+function GetJSONDate(JsonObj: TJSONObject; const FieldName: String; const Default: TDateTime = 0; UseDefault: Boolean = False): TDateTime;
+
+
+implementation
+
+function GetJSONInteger(JsonObj: TJSONObject; const FieldName: String; const Default: Integer = -1; UseDefault: Boolean = False): Integer;
+var
+  FieldValue: TJSONData;
+begin
+  FieldValue := JsonObj.Find(FieldName);
+  if FieldValue = nil then
+  begin
+    if UseDefault then
+      Result := Default
+    else
+      raise Exception.CreateFmt('Campo inteiro %s não encontrado no JSON.', [FieldName]);
+  end
+  else
+  begin
+    if FieldValue.JSONType = jtNumber then
+      Result := FieldValue.AsInteger
+    else
+      raise Exception.CreateFmt('Campo %s não é numérico.', [FieldName]);
+  end;
+end;
+
+function GetJSONNumber(JsonObj: TJSONObject; const FieldName: String;
+  UseDefault: Boolean; const Default: Double): Double;
+var
+  FieldValue: TJSONData;
+begin
+  FieldValue := JsonObj.Find(FieldName);
+  if FieldValue = nil then
+  begin
+    if UseDefault then
+      Result := Default
+    else
+      raise Exception.CreateFmt('Campo numérico %s não encontrado no JSON.', [FieldName]);
+  end
+  else
+  begin
+    if FieldValue.JSONType = jtNumber then
+      Result := FieldValue.AsFloat
+    else
+      raise Exception.CreateFmt('Campo %s não é numérico.', [FieldName]);
+  end;
+
+end;
+
+function GetJSONString(JsonObj: TJSONObject; const FieldName: String;
+  UseDefault: Boolean; const Default: String): String;
+var
+  FieldValue: TJSONData;
+begin
+  FieldValue := JsonObj.Find(FieldName);
+  if FieldValue = nil then
+  begin
+    if UseDefault then
+      Result := Default
+    else
+      raise Exception.CreateFmt('Campo string %s não encontrado no JSON.', [FieldName]);
+  end
+  else
+  begin
+    if FieldValue.JSONType in [jtString, jtNumber] then
+      Result := FieldValue.AsString
+    else
+      raise Exception.CreateFmt('Campo %s não é uma string válida.', [FieldName]);
+  end;
+end;
+
+function GetJSONDate(JsonObj: TJSONObject; const FieldName: String; const Default: TDateTime = 0; UseDefault: Boolean = False): TDateTime;
+var
+  FieldValue: TJSONData;
+begin
+  FieldValue := JsonObj.Find(FieldName);
+  if FieldValue = nil then
+  begin
+    if UseDefault then
+      Result := Default
+    else
+      raise Exception.CreateFmt('Campo data %s não encontrado no JSON.', [FieldName]);
+  end
+  else
+  begin
+    try
+      Result := StrToDateTime(FieldValue.AsString);
+    except
+      on E: Exception do
+        raise Exception.CreateFmt('Campo %s não é uma data válida: %s', [FieldName, E.Message]);
+    end;
+  end;
+end;
+
+end.
+
