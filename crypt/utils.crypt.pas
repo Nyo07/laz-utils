@@ -73,10 +73,10 @@ begin
   ChaveExtendida := GerarChaveExtendida(Chave, Length(TextoCriptografado));
 
   // Inicializa o resultado
-  SetLength(Result, Length(TextoCriptografado));
+  SetLength(Result, Length(TextoCriptografado)-1);
 
   // Descriptografa cada caractere
-  for i := 1 to Length(TextoCriptografado) do
+  for i := 1 to Length(TextoCriptografado)-1 do
   begin
     // Reverte o processo de criptografia
     ValorDescriptografado := Ord(TextoCriptografado[i]) xor
