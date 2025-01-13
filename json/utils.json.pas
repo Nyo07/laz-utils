@@ -75,7 +75,12 @@ begin
   else
   begin
     if FieldValue.JSONType in [jtString, jtNumber] then
-      Result := FieldValue.AsString
+    begin
+      if FieldValue.AsString <> '' then
+        Result := FieldValue.AsString
+      else
+        Result := Default
+    end
     else
       raise Exception.CreateFmt('Campo %s não é uma string válida.', [FieldName]);
   end;
