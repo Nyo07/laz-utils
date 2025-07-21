@@ -23,6 +23,11 @@
     <RunParams>
       <FormatVersion Value="2"/>
     </RunParams>
+    <RequiredPackages>
+      <Item>
+        <PackageName Value="LCL"/>
+      </Item>
+    </RequiredPackages>
     <Units>
       <Unit>
         <Filename Value="utils.lpr"/>
@@ -53,6 +58,28 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="TesteCriptografia"/>
       </Unit>
+      <Unit>
+        <Filename Value="rabbitmq/urabbitmqclient.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uRabbitMQClient"/>
+      </Unit>
+      <Unit>
+        <Filename Value="rabbitmq/urabbitmqmonitor.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uRabbitMQMonitor"/>
+      </Unit>
+      <Unit>
+        <Filename Value="env/utils.env.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="token/utils.token.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="keycloak/utils.keycloak.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -62,7 +89,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="http;crypt;os;xml;json;test"/>
+      <OtherUnitFiles Value="http;crypt;os;xml;json;test;rabbitmq;env;token;keycloak"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
   </CompilerOptions>

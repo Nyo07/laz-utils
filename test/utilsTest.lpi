@@ -21,6 +21,9 @@
     </RunParams>
     <RequiredPackages>
       <Item>
+        <PackageName Value="indylaz"/>
+      </Item>
+      <Item>
         <PackageName Value="fpcunittestrunner"/>
       </Item>
       <Item>
@@ -40,6 +43,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="TestUtilsCrypt"/>
       </Unit>
+      <Unit>
+        <Filename Value="utestrabbitmq.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uTestRabbitMQ"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -49,7 +57,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../crypt"/>
+      <OtherUnitFiles Value="../crypt;../rabbitmq"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>

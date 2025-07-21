@@ -9,7 +9,7 @@ uses
 
 function GetJSONInteger(JsonObj: TJSONObject; const FieldName: String; const Default: Integer = -1; UseDefault: Boolean = False): Integer;
 function GetJSONNumber(JsonObj: TJSONObject; const FieldName: String; UseDefault: Boolean = False; const Default: Double = 0.0): Double;
-function GetJSONString(JsonObj: TJSONObject; const FieldName: String; UseDefault: Boolean = False; const Default: String = ''): String;
+function GetJSONString(JsonObj: TJSONObject; const FieldName: String; UseDefault: Boolean = False; const Default: String = ''; const APrefixDefault: String = ''): String;
 function GetJSONDate(JsonObj: TJSONObject; const FieldName: String; const Default: TDateTime = 0; UseDefault: Boolean = False): TDateTime;
 
 
@@ -60,7 +60,7 @@ begin
 end;
 
 function GetJSONString(JsonObj: TJSONObject; const FieldName: String;
-  UseDefault: Boolean; const Default: String): String;
+  UseDefault: Boolean; const Default: String; const APrefixDefault: String): String;
 var
   FieldValue: TJSONData;
 begin
@@ -70,7 +70,7 @@ begin
     if UseDefault then
       Result := Default
     else
-      raise Exception.CreateFmt('Campo string %s não encontrado no JSON.', [FieldName]);
+      raise Exception.CreateFmt(APrefixDefault + 'Campo string %s não encontrado no JSON.', [FieldName]);
   end
   else
   begin
@@ -82,13 +82,14 @@ begin
         Result := Default
     end
     else
-      raise Exception.CreateFmt('Campo %s não é uma string válida.', [FieldName]);
+      raise Exception.CreateFmt(APrefixDefault + 'Campo %s não é uma string válida.', [FieldName]);
   end;
 end;
 
 function GetJSONDate(JsonObj: TJSONObject; const FieldName: String; const Default: TDateTime = 0; UseDefault: Boolean = False): TDateTime;
 var
   FieldValue: TJSONData;
+  FS : TFormatSettings;
 begin
   FieldValue := JsonObj.Find(FieldName);
   if FieldValue = nil then
@@ -101,7 +102,9 @@ begin
   else
   begin
     try
-      Result := StrToDateTime(FieldValue.AsString);
+      FS := DefaultFormatSettings;
+      FS.DateSeparator := '/';
+      Result := StrToDateTime(FieldValue.AsString, FS);
     except
       on E: Exception do
         raise Exception.CreateFmt('Campo %s não é uma data válida: %s', [FieldName, E.Message]);

@@ -3,7 +3,7 @@ program utilsTest;
 {$mode objfpc}{$H+}
 
 uses
-  Interfaces, Forms, GuiTestRunner, TestUtilsCrypt;
+  Interfaces, Forms, indylaz, GuiTestRunner, TestUtilsCrypt, RabbitMQTests;
 
 {$R *.res}
 

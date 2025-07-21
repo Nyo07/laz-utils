@@ -5,7 +5,7 @@ unit utils.http;
 interface
 
 uses
-  Classes, SysUtils, HTTPDefs;
+  Classes, SysUtils, HTTPDefs, httpprotocol;
 
 function trataParam(AReq : TRequest): String;
 
