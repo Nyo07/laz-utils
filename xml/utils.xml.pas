@@ -9,6 +9,7 @@ uses
 
 function XMLNodeToJSON(Node: TDOMNode): TJSONData;
 function XMLToJSONFromString(const XMLContent: string): string;
+function ErroJson(AMenssagem :String) :String;
 
 implementation
 
@@ -165,6 +166,11 @@ begin
   finally
     SS.Free;
   end;
+end;
+
+function ErroJson(AMenssagem: String): String;
+begin
+  Format('{"error": "%s"}', [AMenssagem])
 end;
 
 end.
