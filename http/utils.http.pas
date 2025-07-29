@@ -8,6 +8,7 @@ uses
   Classes, SysUtils, HTTPDefs, httpprotocol;
 
 function trataParam(AReq : TRequest): String;
+procedure getOrDefault(AValue: String; var AVar : String; ADefault: String);
 
 implementation
 
@@ -27,6 +28,14 @@ begin
   if (LPos > 0) then
     Result := copy(Result, 1, LPos - 1);
 
+end;
+
+procedure getOrDefault(AValue: String; var AVar: String; ADefault: String);
+begin
+  if (AValue <> '') then
+    AVar := AValue
+  else
+    AVar := ADefault;
 end;
 
 end.

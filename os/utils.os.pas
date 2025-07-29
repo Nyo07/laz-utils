@@ -5,7 +5,7 @@ unit utils.os;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, base64;
 
   function diretorioApp(): String;
 
@@ -17,4 +17,8 @@ begin
 end;
 
 end.
+
+
+
+
 

@@ -15,6 +15,8 @@ function DeleteFilesOlderThanXDays(
 function fileDate(AFile : String) : TDateTime;
 function base64ToFile(info64, fileWithPath: String): Boolean;
 function FileToBase64(const AFile: String): String;
+function EncodeBase64FromStream(Stream: TStream): string;
+function GetFirstMatchingFileBase64(const APath, APartialName: string): string;
 
 implementation
 
@@ -96,24 +98,76 @@ end;
 function FileToBase64(const AFile: String): String;
 var
   MS: TMemoryStream;
-  Str: String;
 begin
   Result := '';
-  if not FileExists(AFile) then
-    Exit;
+  if not FileExists(AFile) then Exit;
+
   MS := TMemoryStream.Create;
   try
     MS.LoadFromFile(AFile);
-    if MS.Size > 0 then
-    begin
-      SetLength(Str, MS.Size div SizeOf(Char));
-      MS.ReadBuffer(Str[1], MS.Size div SizeOf(Char));
-      Result := EncodeStringBase64(Str);
-    end;
+    Result := EncodeBase64FromStream(MS);
   finally
     MS.Free;
   end;
 end;
+
+
+function EncodeBase64FromStream(Stream: TStream): string;
+const
+  Base64Table: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+var
+  InBuf: array[0..2] of Byte;
+  OutBuf: array[0..3] of Char;
+  BytesRead, I: Integer;
+begin
+  Result := '';
+  Stream.Position := 0;
+
+  while True do
+  begin
+    BytesRead := Stream.Read(InBuf, 3);
+    if BytesRead = 0 then Break;
+
+    for I := BytesRead to 2 do
+      InBuf[I] := 0;
+
+    OutBuf[0] := Base64Table[(InBuf[0] shr 2) + 1];
+    OutBuf[1] := Base64Table[(((InBuf[0] and $03) shl 4) or (InBuf[1] shr 4)) + 1];
+    OutBuf[2] := Base64Table[(((InBuf[1] and $0F) shl 2) or (InBuf[2] shr 6)) + 1];
+    OutBuf[3] := Base64Table[(InBuf[2] and $3F) + 1];
+
+    if BytesRead < 3 then
+    begin
+      OutBuf[3] := '=';
+      if BytesRead < 2 then
+        OutBuf[2] := '=';
+    end;
+
+    Result := Result + OutBuf[0] + OutBuf[1] + OutBuf[2] + OutBuf[3];
+  end;
+end;
+
+function GetFirstMatchingFileBase64(const APath, APartialName: string): string;
+var
+  SearchRec: TSearchRec;
+  FullPath: string;
+begin
+  Result := '';
+  if not DirectoryExists(APath) then
+    Exit;
+
+  if FindFirst(IncludeTrailingPathDelimiter(APath) + '*' + APartialName + '*', faAnyFile and faArchive, SearchRec) = 0 then
+  begin
+    try
+      FullPath := IncludeTrailingPathDelimiter(APath) + SearchRec.Name;
+      Result := FileToBase64(FullPath);
+    finally
+      FindClose(SearchRec);
+    end;
+  end;
+end;
+
+
 
 end.
 

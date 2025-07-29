@@ -20,7 +20,7 @@ var
   FieldValue: TJSONData;
 begin
   FieldValue := JsonObj.Find(FieldName);
-  if FieldValue = nil then
+  if ((FieldValue = nil) or (FieldValue.JSONType = jtNull)) then
   begin
     if UseDefault then
       Result := Default
@@ -29,7 +29,7 @@ begin
   end
   else
   begin
-    if FieldValue.JSONType = jtNumber then
+    if (FieldValue.JSONType = jtNumber)  then
       Result := FieldValue.AsInteger
     else
       raise Exception.CreateFmt('Campo %s não é numérico.', [FieldName]);
