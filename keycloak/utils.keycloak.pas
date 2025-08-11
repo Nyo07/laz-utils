@@ -136,6 +136,7 @@ begin
   LHttp := THTTPSend.Create;
   JsonResp:= TJSONObject.Create;
   try
+    try
     LHttp.Clear;
     LHttp.Timeout := 15000;
     LHttp.Sock.SSL.SSLType := LT_TLSv1_3;
@@ -144,15 +145,18 @@ begin
     FormData := Format('client_id=%s&client_secret=%s&token=%s', [ClientId, ClientSecret, Token]);
     LHttp.Document.WriteBuffer(Pointer(FormData)^, Length(FormData));
 
-    LHttp.HTTPMethod('POST', IntrospectUrl);
-    SetLength(ResponseStr, LHttp.Document.Size);
-    LHttp.Document.ReadBuffer(Pointer(ResponseStr)^, LHttp.Document.Size);
+    if (LHttp.HTTPMethod('POST', IntrospectUrl)) then
+    begin
+      SetLength(ResponseStr, LHttp.Document.Size);
+      LHttp.Document.ReadBuffer(Pointer(ResponseStr)^, LHttp.Document.Size);
+    end;
 
     if LHttp.ResultCode <> 200 then
     begin
-       raise EJsonException.Create('NFe: '+LHttp.ResultString, 401);
-       Result := false;
-       exit;
+      ResponseStr := LHttp.ResultString;
+      if (ResponseStr = '') then
+        ResponseStr := 'Erro ao obter token, code: ' + LHttp.ResultCode.ToString();
+      raise EJsonException.Create('NFe: '+ResponseStr, LHttp.ResultCode);
     end;
 
     JsonResp := TJSONObject(GetJSON(ResponseStr));
@@ -164,6 +168,13 @@ begin
     else
     begin
      raise EJsonException.Create('Invalid or inactive token', 401);
+    end;
+
+    except
+      on E: EJsonException do
+        raise;
+      on E: Exception do
+        raise EJsonException.Create(E.Message, 500);
     end;
   finally
     JsonResp.Free;
