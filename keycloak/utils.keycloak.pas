@@ -5,7 +5,7 @@ unit utils.keycloak;
 interface
 
 uses
-  fphttpclient, fpjson, jsonparser, sysutils, classes, HTTPDefs, utils.env, base64;
+  fphttpclient, fpjson, jsonparser, sysutils, classes, HTTPDefs, utils.env, base64, utils.jsonException;
 
 function ValidarToken(ARequest: TRequest; var AResponse: TResponse; ClientSecret, keycloakUrl: string): Boolean;
 
@@ -94,18 +94,14 @@ begin
   AuthHeader := ARequest.Authorization;
   if AuthHeader = '' then
   begin
-    AResponse.Code := 401;
-    AResponse.Content := '{"error": "Authorization header is missing"}';
-    Exit;
+    raise EJsonException.Create('Authorization header is missing', 401);
   end;
 
   // 2. Extrair token do formato "Bearer <token>"
   TokenParts := AuthHeader.Split([' ']);
   if (Length(TokenParts) <> 2) or (TokenParts[0] <> 'Bearer') then
   begin
-    AResponse.Code := 401;
-    AResponse.Content := '{"error": "Invalid Authorization header format"}';
-    Exit;
+    raise EJsonException.Create('Invalid Authorization header format', 401);
   end;
 
   Token := TokenParts[1];
@@ -114,25 +110,19 @@ begin
   Issuer := GetJWTClaim(Token, 'iss');
   if Issuer = '' then
   begin
-    AResponse.Code := 401;
-    AResponse.Content := '{"error": "Issuer (iss) claim missing in token"}';
-    Exit;
+    raise EJsonException.Create('Issuer (iss) claim missing in token', 401);
   end;
   Realm := ExtractRealmFromIssuer(Issuer);
   if Realm = '' then
   begin
-    AResponse.Code := 401;
-    AResponse.Content := '{"error": "Invalid realm extracted from issuer"}';
-    Exit;
+    raise EJsonException.Create('Invalid realm extracted from issuer', 401);
   end;
 
   // 4. Extrair client_id do campo azp do token
   ClientId := GetJWTClaim(Token, 'azp');
   if ClientId = '' then
   begin
-    AResponse.Code := 401;
-    AResponse.Content := '{"error": "Client ID (azp) claim missing in token"}';
-    Exit;
+    raise EJsonException.Create('Client ID (azp) claim missing in token', 401);
   end;
 
   // 5. Preparar URL de introspecção
@@ -140,33 +130,24 @@ begin
     [keycloakUrl, Realm]);
 
   Http := TFPHTTPClient.Create(nil);
+  Http.AddHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+  // Enviar dados para introspecção
+  ResponseStr := Http.FormPost(IntrospectUrl,
+    Format('client_id=%s&client_secret=%s&token=%s', [ClientId, ClientSecret, Token]));
+
+  JsonResp := TJSONObject(GetJSON(ResponseStr));
   try
-    Http.AddHeader('Content-Type', 'application/x-www-form-urlencoded');
-
-    // Enviar dados para introspecção
-    ResponseStr := Http.FormPost(IntrospectUrl,
-      Format('client_id=%s&client_secret=%s&token=%s', [ClientId, ClientSecret, Token]));
-
-    JsonResp := TJSONObject(GetJSON(ResponseStr));
-    try
-      if JsonResp.Get('active', False) then
-      begin
-        Result := True;
-      end
-      else
-      begin
-        AResponse.Code := 401;
-        AResponse.Content := '{ "error": "Invalid or inactive token" }';
-      end;
-    finally
-      JsonResp.Free;
-    end;
-  except
-    on E: Exception do
+    if JsonResp.Get('active', False) then
     begin
-      AResponse.Code := 500;
-      AResponse.Content := '{"error": "Token introspection failed: ' + E.Message  + '}"';
+      Result := True;
+    end
+    else
+    begin
+     raise EJsonException.Create('Invalid or inactive token', 401);
     end;
+  finally
+    JsonResp.Free;
   end;
   Http.Free;
 end;

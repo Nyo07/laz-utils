@@ -5,12 +5,14 @@ unit utils.json;
 interface
 
 uses
-  Classes, SysUtils, fpjson, jsonparser;
+  Classes, SysUtils, fpjson, jsonparser, DateUtils;
 
 function GetJSONInteger(JsonObj: TJSONObject; const FieldName: String; const Default: Integer = -1; UseDefault: Boolean = False): Integer;
 function GetJSONNumber(JsonObj: TJSONObject; const FieldName: String; UseDefault: Boolean = False; const Default: Double = 0.0): Double;
 function GetJSONString(JsonObj: TJSONObject; const FieldName: String; UseDefault: Boolean = False; const Default: String = ''; const APrefixDefault: String = ''): String;
 function GetJSONDate(JsonObj: TJSONObject; const FieldName: String; const Default: TDateTime = 0; UseDefault: Boolean = False): TDateTime;
+function GetJSONDateTime(JsonObj: TJSONObject; const FieldName: String; const Default: TDateTime) : TDateTime;
+function GetJSONDateTime(JsonObj: TJSONObject; const FieldName: String) : TDateTime;
 
 
 implementation
@@ -42,7 +44,7 @@ var
   FieldValue: TJSONData;
 begin
   FieldValue := JsonObj.Find(FieldName);
-  if FieldValue = nil then
+  if ((FieldValue = nil) or (FieldValue.JSONType = jtNull)) then
   begin
     if UseDefault then
       Result := Default
@@ -65,7 +67,7 @@ var
   FieldValue: TJSONData;
 begin
   FieldValue := JsonObj.Find(FieldName);
-  if FieldValue = nil then
+  if ((FieldValue = nil) or (FieldValue.JSONType = jtNull)) then
   begin
     if UseDefault then
       Result := Default
@@ -86,13 +88,14 @@ begin
   end;
 end;
 
-function GetJSONDate(JsonObj: TJSONObject; const FieldName: String; const Default: TDateTime = 0; UseDefault: Boolean = False): TDateTime;
+function GetJSONDate(JsonObj: TJSONObject; const FieldName: String;
+  const Default: TDateTime; UseDefault: Boolean): TDateTime;
 var
   FieldValue: TJSONData;
   FS : TFormatSettings;
 begin
   FieldValue := JsonObj.Find(FieldName);
-  if FieldValue = nil then
+  if ((FieldValue = nil) or (FieldValue.JSONType = jtNull)) then
   begin
     if UseDefault then
       Result := Default
@@ -110,6 +113,43 @@ begin
         raise Exception.CreateFmt('Campo %s não é uma data válida: %s', [FieldName, E.Message]);
     end;
   end;
+end;
+
+function GetJSONDateTime(JsonObj: TJSONObject; const FieldName: String; const Default: TDateTime): TDateTime;
+var
+  FieldValue: TJSONData;
+begin
+  FieldValue := JsonObj.Find(FieldName);
+
+  FieldValue := JsonObj.Find(FieldName);
+  if ((FieldValue = nil) or (FieldValue.JSONType = jtNull)) then
+  begin
+    if Default <> 0 then
+      Result := Default
+    else
+      raise Exception.CreateFmt('Campo data %s não encontrado no JSON.', [FieldName]);
+  end
+  else
+  begin
+    try
+      Result := ISO8601ToDate(FieldValue.AsString, false);
+    except
+      on E: Exception do
+        raise Exception.CreateFmt('Campo %s não é uma data válida: %s', [FieldName, E.Message]);
+    end
+  end
+end;
+
+function GetJSONDateTime(JsonObj: TJSONObject; const FieldName: String
+  ): TDateTime;
+var
+  FS : TFormatSettings;
+begin
+  FS.DateSeparator := '-';
+  FS.ShortDateFormat := 'YYYY-MM-DD';
+  FS.TimeSeparator := ':';
+  FS.ShortTimeFormat := 'hh:nn:ss';
+  GetJSONDateTime(JsonObj, FieldName, 0);
 end;
 
 end.
