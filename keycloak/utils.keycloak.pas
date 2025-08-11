@@ -134,22 +134,29 @@ begin
 
 
   LHttp := THTTPSend.Create;
-  LHttp.Sock.SSL.SSLType := LT_TLSv1_3;
-  LHttp.Headers.Add('Content-Type: application/x-www-form-urlencoded');
-
-  FormData := Format('client_id=%s&client_secret=%s&token=%s', [ClientId, ClientSecret, Token]);
-  LHttp.Document.WriteBuffer(FormData[1], Length(FormData));
-
-  LHttp.HTTPMethod('POST', IntrospectUrl);
-  if LHttp.ResultCode <> 200 then
-  begin
-     raise EJsonException.Create('NFe: '+LHttp.ResultString, 401);
-     Result := false;
-     exit;
-  end;
-
-  JsonResp := TJSONObject(GetJSON(LHttp.ResultString));
+  JsonResp:= TJSONObject.Create;
   try
+    LHttp.Clear;
+    LHttp.Timeout := 15000;
+    LHttp.Sock.SSL.SSLType := LT_TLSv1_3;
+    LHttp.MimeType := 'application/x-www-form-urlencoded';
+
+    FormData := Format('client_id=%s&client_secret=%s&token=%s', [ClientId, ClientSecret, Token]);
+    LHttp.Document.WriteBuffer(Pointer(FormData)^, Length(FormData));
+
+    LHttp.HTTPMethod('POST', IntrospectUrl);
+    SetLength(ResponseStr, LHttp.Document.Size);
+    LHttp.Document.ReadBuffer(Pointer(ResponseStr)^, LHttp.Document.Size);
+
+    if LHttp.ResultCode <> 200 then
+    begin
+       raise EJsonException.Create('NFe: '+LHttp.ResultString, 401);
+       Result := false;
+       exit;
+    end;
+
+    JsonResp := TJSONObject(GetJSON(ResponseStr));
+
     if JsonResp.Get('active', False) then
     begin
       Result := True;
@@ -160,8 +167,9 @@ begin
     end;
   finally
     JsonResp.Free;
+    LHttp.Free;
   end;
-  LHttp.Free;
+
 end;
 
 end.
