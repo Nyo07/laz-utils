@@ -5,7 +5,9 @@ unit utils.keycloak;
 interface
 
 uses
-  fphttpclient, fpjson, jsonparser, sysutils, classes, HTTPDefs, utils.env, base64, utils.jsonException;
+  fphttpclient, fpjson, jsonparser, sysutils, classes, HTTPDefs, utils.env,
+  base64, utils.jsonException, opensslsockets, httpsend, ssl_openssl,
+  blcksock;
 
 function ValidarToken(ARequest: TRequest; var AResponse: TResponse; ClientSecret, keycloakUrl: string): Boolean;
 
@@ -76,7 +78,8 @@ function ValidarToken(ARequest: TRequest; var AResponse: TResponse; ClientSecret
 var
   AuthHeader, Token: string;
   TokenParts: TStringArray;
-  Http: TFPHTTPClient;
+  FormData : String;
+  LHttp : THTTPSend;
   ResponseStr: string;
   JsonResp: TJSONObject;
   IntrospectUrl, Realm, ClientId, Issuer: string;
@@ -129,14 +132,23 @@ begin
   IntrospectUrl := Format('%s/realms/%s/protocol/openid-connect/token/introspect',
     [keycloakUrl, Realm]);
 
-  Http := TFPHTTPClient.Create(nil);
-  Http.AddHeader('Content-Type', 'application/x-www-form-urlencoded');
 
-  // Enviar dados para introspecção
-  ResponseStr := Http.FormPost(IntrospectUrl,
-    Format('client_id=%s&client_secret=%s&token=%s', [ClientId, ClientSecret, Token]));
+  LHttp := THTTPSend.Create;
+  LHttp.Sock.SSL.SSLType := LT_TLSv1_3;
+  LHttp.Headers.Add('Content-Type: application/x-www-form-urlencoded');
 
-  JsonResp := TJSONObject(GetJSON(ResponseStr));
+  FormData := Format('client_id=%s&client_secret=%s&token=%s', [ClientId, ClientSecret, Token]);
+  LHttp.Document.WriteBuffer(FormData[1], Length(FormData));
+
+  LHttp.HTTPMethod('POST', IntrospectUrl);
+  if LHttp.ResultCode <> 200 then
+  begin
+     raise EJsonException.Create('NFe: '+LHttp.ResultString, 401);
+     Result := false;
+     exit;
+  end;
+
+  JsonResp := TJSONObject(GetJSON(LHttp.ResultString));
   try
     if JsonResp.Get('active', False) then
     begin
@@ -149,7 +161,7 @@ begin
   finally
     JsonResp.Free;
   end;
-  Http.Free;
+  LHttp.Free;
 end;
 
 end.
