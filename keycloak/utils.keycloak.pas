@@ -156,7 +156,7 @@ begin
       ResponseStr := LHttp.ResultString;
       if (ResponseStr = '') then
         ResponseStr := 'Erro ao obter token, code: ' + LHttp.ResultCode.ToString();
-      raise EJsonException.Create('NFe: '+ResponseStr, LHttp.ResultCode);
+      raise EJsonException.Create('Emissor: '+ResponseStr + ' url:'+IntrospectUrl, LHttp.ResultCode);
     end;
 
     JsonResp := TJSONObject(GetJSON(ResponseStr));
