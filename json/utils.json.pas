@@ -107,10 +107,11 @@ begin
     try
       FS := DefaultFormatSettings;
       FS.DateSeparator := '/';
+      FS.ShortDateFormat:='DD/MM/YYYY';
       Result := StrToDateTime(FieldValue.AsString, FS);
     except
       on E: Exception do
-        raise Exception.CreateFmt('Campo %s não é uma data válida: %s', [FieldName, E.Message]);
+        raise Exception.CreateFmt('Campo %s não é uma data válida: %s, valor: %s', [FieldName, E.Message, FieldValue.AsString]);
     end;
   end;
 end;
