@@ -17,7 +17,7 @@ function base64ToFile(info64, fileWithPath: String): Boolean;
 function FileToBase64(const AFile: String): String;
 function EncodeBase64FromStream(Stream: TStream): string;
 function GetFirstMatchingFileBase64(const APath, APartialName: string): string;
-function GetFirstMatchingFile(const APath, APartialName: string): string;
+function GetFirstMatchingFile(const APath, APartialName: string; AExtencao :String = ''): string;
 
 implementation
 
@@ -168,7 +168,7 @@ begin
   end;
 end;
 
-function GetFirstMatchingFile(const APath, APartialName: string): string;
+function GetFirstMatchingFile(const APath, APartialName: string; AExtencao :String): string;
 var
   SearchRec: TSearchRec;
   FullPath: string;
@@ -177,7 +177,7 @@ begin
   if not DirectoryExists(APath) then
     Exit;
 
-  if FindFirst(IncludeTrailingPathDelimiter(APath) + '*' + APartialName + '*', faAnyFile and faArchive, SearchRec) = 0 then
+  if FindFirst(IncludeTrailingPathDelimiter(APath) + '*' + APartialName + '*' + AExtencao, faAnyFile and faArchive, SearchRec) = 0 then
   begin
     try
       FullPath := IncludeTrailingPathDelimiter(APath) + SearchRec.Name;
