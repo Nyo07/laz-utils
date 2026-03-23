@@ -5,10 +5,11 @@ unit utils.env;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, fileinfo, winpeimagereader;
 
 function LoadEnv(const FileName: string): TStringList;
 function GetEnvFromFile(sl: TStringList; const Key: string): string;
+function GetVersaoApp :String;
 
 implementation
 
@@ -41,6 +42,19 @@ begin
         Exit;
       end;
     end;
+  end;
+end;
+
+function GetVersaoApp: String;
+var
+  FileVerInfo: TFileVersionInfo;
+begin
+  FileVerInfo := TFileVersionInfo.Create(nil);
+  try
+    FileVerInfo.ReadFileInfo;
+    Result := FileVerInfo.VersionStrings.Values['FileVersion'];
+  finally
+    FileVerInfo.Free;
   end;
 end;
 
