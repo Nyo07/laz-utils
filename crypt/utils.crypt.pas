@@ -93,10 +93,11 @@ begin
         Temp[j] := 0;
     end;
 
-    // Decodifica
-    Output[0] := (Temp[0] shl 2) or (Temp[1] shr 4);
-    Output[1] := (Temp[1] shl 4) or (Temp[2] shr 2);
-    Output[2] := (Temp[2] shl 6) or Temp[3];
+    // Decodifica (mascara para 8 bits: os deslocamentos passam de 255 e
+    // gerariam ERangeError quando a verificação de faixa -Cr está ativa)
+    Output[0] := ((Temp[0] shl 2) or (Temp[1] shr 4)) and $FF;
+    Output[1] := ((Temp[1] shl 4) or (Temp[2] shr 2)) and $FF;
+    Output[2] := ((Temp[2] shl 6) or Temp[3]) and $FF;
 
     // Adiciona ao resultado
     Result := Result + Chr(Output[0]);
