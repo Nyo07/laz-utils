@@ -1,11 +1,23 @@
 
 /lib
-/backup
-/backup
-/json/backup
-/xml/backup
-/crypt/backup
-/os/backup
-/file/backup
-/test/lib
+**/lib/
+**/backup/
 .DS_Store
+
+# Binários e artefatos de compilação (Lazarus / FPC)
+utils
+test/utilsTest
+*.exe
+*.o
+*.ppu
+*.compiled
+*.or
+*.res
+*.a
+*.so
+*.dll
+
+# Backups, sessão da IDE e logs
+*.bak
+*.lps
+*.log
